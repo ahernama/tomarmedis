@@ -1,36 +1,84 @@
-# How TomarMedis was built: the prompts
+<p align="center">
+  <img src="docs/img/banner-en.jpg" alt="TomarMedis (TakeMeds): step-by-step guide to build it in one afternoon with Gemini in Antigravity" width="100%">
+</p>
 
-TomarMedis (TakeMeds in English) was built in one afternoon by a parent and an AI coding agent: **Gemini in [Google Antigravity](https://antigravity.google/)**, deployed on **Google Cloud**. This file lists the prompts, in order, that reproduce the same process from scratch. You can also start from the code in this repo and use the prompts to adapt it to your family.
+# The TomarMedis prompts, in order
 
-Replace the `<PLACEHOLDERS>`. A few habits that made it work:
+← [Back to the guide](README.md) · 🇪🇸 [Español](PROMPTS.es.md)
 
-- Work in a normal local folder, let the agent show a plan first, and review the diffs it proposes.
-- Ask it to **verify** (typecheck, build, headless browser screenshots, `curl` against the live URL) instead of trusting a summary.
-- Never paste API keys or real health data into prompts or commits. Personal settings (child name, medicines) live only on the device.
+These are the prompts we used with Gemini in Antigravity, in the order we used them. Copy them and replace the `<PLACEHOLDERS>` with your own values. Each step says what to check before moving on.
+
+**How to use them**
+
+- Work in a normal local folder. Ask the agent for a plan before it starts, and review the changes it proposes.
+- Ask it to **verify** its work instead of trusting the summary:
+  - typecheck and build;
+  - screenshots from a headless browser;
+  - `curl` against the live URL.
+- Don't paste API keys or real health data into the prompts. The kid's name and medicines are set later, on the device itself.
+
+**Index:** [Visual brief](#visual-brief) · [0](#step-0) · [1](#step-1) · [2](#step-2) · [3](#step-3) · [4](#step-4) · [5](#step-5) · [6](#step-6) · [7](#step-7) · [8](#step-8) · [9](#step-9) · [Bonus](#bonus)
 
 ---
 
-## 0. Quick prototype (optional, Google AI Studio "Build")
+<a id="visual-brief"></a>
+
+## Visual brief (paste it at the end of prompt 1)
+
+This makes the app come out with the same look as ours. The [guide](README.md#how-its-used) has screenshots.
 
 ```text
-Create a fun web app so my 4-year-old can take his medicines every morning and night.
+Look and feel: iPad landscape first, portrait too. Big tap targets (at least 64 px), high
+contrast and few words.
+- Header: the companion's round avatar, the app name in the theme's display font, a pill with
+  the world's name and a "<companion> · Change companion" button. Sound and a gear icon for
+  the parents zone on the right.
+- Below it: pills for today's doses ("Morning 0/3", "Night 0/3"), a themed badge counter with
+  3 slots that fill up, and today's date.
+- A themed mission title ("Night rescue mission").
+- One big card per medicine with:
+  - number and themed badge name;
+  - a large drawing (measuring cup, dropper or oral syringe);
+  - name, dose and form ("5 ml · Cup");
+  - a gradient "Tap here! 👆" button.
+  Once taken: green check, the time, a "Done!" button and undo. An animated hand points at
+  the next card.
+- At the bottom, a row with the world's companions (emoji avatar on a coloured circle), with
+  the selected one ticked.
+- When the dose is complete: a themed banner with a "Watch my video" button and a confetti
+  celebration before the video.
+- Parents zone in a dialog with tabs (General, Theme, Medicines, Schedule, Rewards, Sound,
+  Data), behind a simple grown-up sum.
+- Each world changes the palette, display font (Google Fonts), background and sounds. The
+  rest of the interface is the same in every world.
+```
+
+<a id="step-0"></a>
+
+## 0. Quick prototype (optional, Google AI Studio → Build)
+
+```text
+Create a fun web app so my <AGE>-year-old can take their medicines every morning and night.
 Big touch-friendly cards for each medicine (name, dose, a drawing of a measuring cup or an
 oral syringe), a sun/moon switch, a weekly calendar with stars, a companion character that
-cheers him on with a voice, and a reward video when all the doses are taken.
-Spanish UI, designed for an iPad.
+cheers them on with a voice, and a reward video when all the doses are taken.
+<LANGUAGE> UI, designed for an iPad.
 ```
+
+✅ **Check** that your kid understands what to tap without being told. Download the zip for step 1.
+
+<a id="step-1"></a>
 
 ## 1. Turn the prototype into a real project
 
-Attach the prototype (zip) and ask:
+Open Antigravity in a new folder, attach the prototype zip and ask (add the [visual brief](#visual-brief) at the end):
 
 ```text
 This is a prototype of a kids' medicine routine app made in AI Studio. Turn it into a
-professional, open-source-ready project.
+professional project, ready to deploy on Google Cloud.
 
-Themes: PAW Patrol, SuperThings, Frozen, Toy Story, The Lion King and Wish. Each theme has its
-own palette, display font, animated background, sound effects and 4-8 characters with their own
-lines in Spanish and English.
+Themes: <YOUR KID'S 6 FAVOURITE SHOWS>. Each theme has its own palette, display font, animated
+background, sound effects and 4-8 characters with their own lines in Spanish and English.
 
 Flow: the child picks a companion, taps each medicine as it is taken (the character cheers),
 and when the dose is complete earns ONE official video of 2-5 minutes (mostly ~3) from that
@@ -52,19 +100,32 @@ Work in a new local folder. Show me the plan first, then build it, run a typeche
 headless-browser smoke test with screenshots for iPad landscape and portrait.
 ```
 
+We used six worlds: PAW Patrol, SuperThings, Frozen, Toy Story, The Lion King and Wish.
+
+✅ **Check:**
+- typecheck and build pass;
+- there are screenshots for iPad landscape and portrait;
+- the whole journey works: pick a buddy, tap the medicines, get to the reward.
+
+<a id="step-2"></a>
+
 ## 2. Official videos only
 
 ```text
-Research the official YouTube channels of each franchise (Disney / Disney Junior, Pixar, PAW
-Patrol, Magic Box / SuperThings) for Spanish (Spain) and English. Verify every channel id from
-its handle page. Build a curated list of embeddable official videos between 120 and 300
-seconds, verified with oEmbed and the watch page, tagged by character. Never invent video ids.
+Research the official YouTube channels of each show (<SHOWS>) for Spanish (Spain) and English.
+Verify every channel id from its handle page. Build a curated list of embeddable official
+videos between 120 and 300 seconds, verified with oEmbed and the watch page, tagged by
+character. Never invent video ids.
 
 Then add a server endpoint that searches ONLY inside those channels with the YouTube Data API
 (safeSearch strict, embeddable, 90-300 s, region aware, titles that clearly belong to the theme,
 no trailers, no audio-only uploads, no making-of), cached for 12 hours, with the curated list
 as fallback. In the player, enforce the maximum length and skip any video that fails to load.
 ```
+
+✅ **Check:** ask for the table of videos and how each one was verified. Then make sure "watch another" doesn't repeat videos already watched.
+
+<a id="step-3"></a>
 
 ## 3. Character pictures without shipping artwork
 
@@ -75,6 +136,10 @@ server setting with an image URL per character, served only to devices that ente
 family code.
 ```
 
+✅ **Check** that there's no official artwork in the project, and that a photo uploaded from the parents zone shows up in the avatar.
+
+<a id="step-4"></a>
+
 ## 4. Voices that feel like characters
 
 ```text
@@ -84,7 +149,15 @@ the greetings of the others, cache the audio on the server and on the device (Ca
 and play it through Web Audio so iPad Safari does not block it.
 ```
 
+✅ **Check** on a real iPad:
+- every character sounds different;
+- the second time, a line plays instantly.
+
+<a id="step-5"></a>
+
 ## 5. Deploy to Google Cloud Run
+
+First run `gcloud auth login` and pick a project with billing enabled.
 
 ```text
 Write deploy/deploy-cloud-run.sh that reads PROJECT_ID and REGION from the environment,
@@ -97,7 +170,11 @@ Then deploy it to project <PROJECT_ID> in <REGION> and verify on the live URL: h
 login with the family code, a TTS request and a video search.
 ```
 
-## 6. Family code that does not get in the way
+✅ **Check** that `https://<service>-<number>.<region>.run.app` opens on the iPad. Read every command before you approve it.
+
+<a id="step-6"></a>
+
+## 6. A family code that doesn't get in the way
 
 ```text
 When the server has a family code, show a screen with two buttons of the same size:
@@ -105,7 +182,14 @@ When the server has a family code, show a screen with two buttons of the same si
 parents enter the code later from the parents zone. Change the code to <NEW_CODE>.
 ```
 
-## 7. Let the child change companion at any time
+✅ **Check:**
+- both buttons are the same size;
+- without the code, the app works with the device voice;
+- with the code, natural voices and video search are switched on.
+
+<a id="step-7"></a>
+
+## 7. Let the kid switch buddy any time
 
 ```text
 On the main screen, add an always-visible row with the companions of the current theme
@@ -113,31 +197,52 @@ On the main screen, add an always-visible row with the companions of the current
 header.
 ```
 
-## 8. Custom domain
+✅ **Check** that one tap switches the buddy and the new one says hello.
+
+<a id="step-8"></a>
+
+## 8. Your own domain with Cloudflare
+
+Buy the domain at Cloudflare, then ask (the details are in the [guide](README.md#domain)):
 
 ```text
-I bought <DOMAIN> at <REGISTRAR>. Help me verify it for the Google account that owns the Cloud
-Run project, map <DOMAIN> and www.<DOMAIN> to the service, tell me the exact DNS records (DNS
-only, no proxy), redirect www to the root domain and monitor until the certificates are issued.
+I bought <DOMAIN> at Cloudflare. Help me verify it for the Google account that owns the Cloud
+Run project, map <DOMAIN> and www.<DOMAIN> to the service, tell me the exact DNS records to add
+in Cloudflare (DNS only, no proxy), redirect www to the root domain and monitor until the
+certificates are issued.
 ```
 
-## 9. Name, polish and open source
+✅ **Check:**
+- `https://<DOMAIN>` opens with the padlock;
+- `www` redirects to the root domain;
+- `gcloud beta run domain-mappings describe` shows the certificate as issued.
+
+<a id="step-9"></a>
+
+## 9. Name and polish
 
 ```text
 Rename the app to <NAME> (<ENGLISH_NAME> in English) in the UI, the PWA manifest and the
-READMEs, without changing internal storage keys. Then prepare the repo for GitHub:
-Apache-2.0 license, README in English and Spanish with screenshots, local setup and deploy
-docs, a trademark disclaimer, .gitignore/.gcloudignore that keep secrets out, a scan for keys
-and personal data, and a zip I can upload.
+texts, without changing internal storage keys. Check that no keys or personal data are left in
+the project, and write a README with how to run it locally and how to deploy it.
+```
+
+✅ **Check:**
+- the new name shows in the tab, on the iPad icon and in the texts;
+- the data already on the iPad is still there.
+
+<a id="bonus"></a>
+
+## Bonus: share how you built it
+
+This is how we prepared this repository:
+
+```text
+Write a step-by-step guide to how we built this app: what we asked for, in which order, how we
+deployed it and how we connected the domain, with the prompts we used and screenshots with
+sample data. No code, no keys and no personal data.
 ```
 
 ---
 
-## Gotchas we hit (so you don't)
-
-- **Gemini-TTS through Cloud Text-to-Speech** needs `aiplatform.endpoints.predict` on the runtime identity (`roles/aiplatform.user`); without it the server silently falls back to Chirp 3 HD.
-- **iPad Safari**: unlock Web Audio on the first tap, use `playsinline` for YouTube, and "Add to Home Screen" so the browser does not clear local data.
-- **YouTube**: many English Disney music videos refuse to play when embedded even if oEmbed works; the player must catch errors and skip.
-- **Cloudflare DNS**: records pointing to Google must be *DNS only* (grey cloud) or the managed certificate never issues.
-- **Changing domain**: device data lives per origin, so export a backup on the old URL and restore it on the new one (or use a setup link).
-- **Firebase Hosting** in front of Cloud Run only forwards a cookie named `__session`; Cloud Run domain mapping does not have that limitation.
+Something not working the first time? See the [gotchas we hit](README.md#gotchas).
